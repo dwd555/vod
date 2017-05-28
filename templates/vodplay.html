@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<button onclick="getConfig()">GetConfig</button>
+<script type="text/javascript" src="static/js/jquery-1.11.3.js"></script>
+</body>
+<script>
+	url="http://127.0.0.1:8000/GetConfig"
+    function getConfig(){
+    	$.ajax({
+    		url:url,
+    		type:'GET',
+    		data:'',
+    		success:function(res){
+    			console.log(res)
+    		}
+    	})
+    }
+</script>
+</html>
