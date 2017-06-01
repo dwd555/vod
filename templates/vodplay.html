@@ -3,22 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+<style type="text/css">
+    *{
+        margin:0;
+        padding:0;
+    }
+    #getConfigResult>div>span{
+        display:block;
+        float:left;
+    }
+    #getConfigResult>div>p{
+        float:left;
+    }
+    #getConfigResult>div{
+        overflow: hidden
+    }
+</style>
 </head>
 <body>
-<button onclick="getConfig()">GetConfig</button>
+<div id="getConfig">
+    <button onclick="getConfig()">GetConfig</button>
+    <div id="getConfigResult"></div>
+</div>
+<div id="play">
+    <button onclick="play()">play</button>
+    <p></p>
+</div>
+<embed type="application/x-vlc-plugin" pluginspage="http://www.videolan.org" id="vlc" width="600px" height="480px" />
 <script type="text/javascript" src="static/js/jquery-1.11.3.js"></script>
 </body>
 <script>
-	url="http://127.0.0.1:8000/GetConfig"
+	getConfigUrl="http://127.0.0.1:8000/GetConfig"
+    playUrl="http://127.0.0.1:8000/play"
     function getConfig(){
     	$.ajax({
-    		url:url,
+    		url:getConfigUrl,
     		type:'GET',
     		data:'',
     		success:function(res){
     			console.log(res)
+                var count=1
+                var html=''
+                for(var i in res){
+                    // console.log(i)
+                    html+=`<div><span>${i}:</span><p>${res[i]}</p></div>`
+                }
+                $("#getConfigResult").html(html)
     		}
     	})
+    }
+    function play(){
+        $.ajax({
+            url:playUrl,
+            type:'GET',
+            data:'',
+            success:function(res){
+                console.log(res)
+                // $("#play").text(res)
+                var vlc=document.getElementById("vlc")
+                vlc.playlist.add(res)
+                vlc.playlist.play()
+            }
+        })
     }
 </script>
 </html>
