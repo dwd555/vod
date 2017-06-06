@@ -15,6 +15,13 @@ class DefaultSaxHandler(object):
 	def start_element(self, name, attrs):
 		# logging.info(json.dumps(attrs))
 		self.data=json.dumps(attrs)
+			
+class SpecialSaxHandler(object):
+	def __init__(self):
+		self.data=''
+	def start_element(self,name,attrs):
+		if(name=="serviceInfo"):
+			self.data=json.dumps(attrs)
 
 def index(request):
 	return render(request,'vodplay.html')
@@ -63,12 +70,22 @@ def sendPlay(clientSessionId):
 		logging.info(result)
 	return 'ok'
 
-def play(request):
+def getDanShen(client,account,titleAsstId):
+	requestUrl="http://ns.gcable.cn/u1/GetItemData?client="+client+"&account="+account+"&titleAssetId="+titleAsstId
+	with urllib.request.urlopen(requestUrl) as f:
+		result=f.read().decode("utf-8")
+		handler=SpecialSaxHandler()
+		parser = ParserCreate()
+		parser.StartElementHandler = handler.start_element
+		parser.Parse(result)
+		logging.info('handler.data='+handler.data)
+		return handler.data
+
+def getFolder(request):
 	client=''
 	account=''
-	purchaseToken=''
-	clientSessionId=''
-	playUrl=''
+	assetId="gd_thzq"
+	folderType="0"
 	xml='''<?xml version="1.0" encoding="UTF-8"?><GetConfig/>'''
 	reg="http://gw.vodserver.local/GetConfig"
 	with urllib.request.urlopen(reg,data=xml.encode("utf-8")) as f:
@@ -80,7 +97,33 @@ def play(request):
 		logging.info("alldata"+handler.data)
 		client=json.loads(handler.data)["client"]
 		account=json.loads(handler.data)["account"]
-	purchaseToken=selectionStart(client, account,"GDZX8020151009000591","104001")
+	requestUrl="http://ns.gcable.cn/u1/GetFolderContents?client="+client+"&account="+account+"&assetId="+assetId+"&folderType="+folderType
+	with urllib.request.urlopen(requestUrl) as f:
+		result=f.read().decode("utf-8")
+		return HttpResponse(result,content_type="application/xml")
+
+
+def play(request):
+	client=''
+	account=''
+	purchaseToken=''
+	clientSessionId=''
+	playUrl=''
+	serviceId=''
+	xml='''<?xml version="1.0" encoding="UTF-8"?><GetConfig/>'''
+	reg="http://gw.vodserver.local/GetConfig"
+	with urllib.request.urlopen(reg,data=xml.encode("utf-8")) as f:
+		result=f.read().decode("utf-8")
+		handler = DefaultSaxHandler()
+		parser = ParserCreate()
+		parser.StartElementHandler = handler.start_element
+		parser.Parse(result)
+		logging.info("alldata"+handler.data)
+		client=json.loads(handler.data)["client"]
+		account=json.loads(handler.data)["account"]
+	serviceId=json.loads(getDanShen(client,account,"GDZX8020151009000591"))["serviceId"]
+	logging.info("serviceId"+serviceId)
+	purchaseToken=selectionStart(client, account,"GDZX8020151009000591",serviceId)
 	logging.info("client="+client)
 	logging.info("account="+account)
 	logging.info("purchaseToken="+purchaseToken)

@@ -20,5 +20,6 @@ from . import view
 urlpatterns = [
     url(r'^$', view.index),
     url(r'^GetConfig$',view.getConfig),
-    url(r'^play$', view.play)
+    url(r'^play$', view.play),
+    url(r'^getFolder$',view.getFolder)
 ]

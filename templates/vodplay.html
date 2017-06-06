@@ -8,6 +8,16 @@
         margin:0;
         padding:0;
     }
+    button{
+        width:100px;
+        height:30px;
+    }
+    .main{
+        margin:50px;
+        width:900px;
+        overflow: hidden;
+
+    }
     #getConfigResult>div>span{
         display:block;
         float:left;
@@ -18,23 +28,49 @@
     #getConfigResult>div{
         overflow: hidden
     }
+/*    #play{
+        margin-top:100px;
+    }*/
+    #getConfig{
+        height:250px;
+    }
+    .controlGroup{
+        width:200px;
+        float:left;
+    }
+    .video{
+        float:left;
+    }
 </style>
 </head>
 <body>
-<div id="getConfig">
-    <button onclick="getConfig()">GetConfig</button>
-    <div id="getConfigResult"></div>
+<div class='main'>
+    <div class="controlGroup">
+        <div id="getConfig">
+            <button onclick="getConfig()">GetConfig</button>
+            <p>getConfig结果：</p>
+            <div id="getConfigResult"></div>
+        </div>
+        <div id="play">
+            <button onclick="play()">play</button>
+            <p></p>
+        </div>
+        <div id="getFolder">
+            <button onclick="getFolder()">获取天华专区</button>
+            <div id="getFolderResult"></div>
+        </div>
+    </div>
+    <div class="video">
+        <embed type="application/x-vlc-plugin" pluginspage="http://www.videolan.org" id="vlc" width="600px" height="480px" />
+    </div>
 </div>
-<div id="play">
-    <button onclick="play()">play</button>
-    <p></p>
-</div>
-<embed type="application/x-vlc-plugin" pluginspage="http://www.videolan.org" id="vlc" width="600px" height="480px" />
 <script type="text/javascript" src="static/js/jquery-1.11.3.js"></script>
 </body>
 <script>
 	getConfigUrl="http://127.0.0.1:8000/GetConfig"
     playUrl="http://127.0.0.1:8000/play"
+    stopUrl="http://127.0.0.1:8000/stop"
+    getFolderUrl="http://127.0.0.1:8000/getFolder"
     function getConfig(){
     	$.ajax({
     		url:getConfigUrl,
@@ -66,5 +102,29 @@
             }
         })
     }
+    function getFolder(){
+        $.ajax({
+            url:getFolderUrl,
+            type:'GET',
+            dateType:'xml',
+            success:function(res){
+                console.log(res)
+                // $("#getFolderResult").text(res)
+                GetStudentComplete(res)
+            }
+        })
+    }
+    function GetStudentComplete(xml) {
+        var html="" 
+        $(xml).find("ChildFolder").each(function(i) {
+            var id = $(this).children("id");          //获得子节点  
+            var id_vaule = id.text();                 //获取节点文本  
+            var email_value = $(this).attr("name");  //获取节点的属性 
+            console.log(email_value)
+            html+=`<p>${email_value}</p>` 
+        }
+    );  
+        $("#getFolderResult").html(html)
+}  
 </script>
 </html>
