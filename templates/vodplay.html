@@ -41,6 +41,9 @@
     .video{
         float:left;
     }
+    #right{
+        float:left;
+    }
 </style>
 </head>
 <body>
@@ -63,6 +66,9 @@
     <div class="video">
         <embed type="application/x-vlc-plugin" pluginspage="http://www.videolan.org" id="vlc" width="600px" height="480px" />
     </div>
+    <div id="right">
+        <button onclick="stop()">TearDown</button>
+    </div>
 </div>
 <script type="text/javascript" src="static/js/jquery-1.11.3.js"></script>
 </body>
@@ -71,6 +77,7 @@
     playUrl="http://127.0.0.1:8000/play"
     stopUrl="http://127.0.0.1:8000/stop"
     getFolderUrl="http://127.0.0.1:8000/getFolder"
+    clientSessionId=""
     function getConfig(){
     	$.ajax({
     		url:getConfigUrl,
@@ -95,9 +102,10 @@
             data:'',
             success:function(res){
                 console.log(res)
+                clientSessionId=res.clientSessionId
                 // $("#play").text(res)
                 var vlc=document.getElementById("vlc")
-                vlc.playlist.add(res)
+                vlc.playlist.add(res.playUrl)
                 vlc.playlist.play()
             }
         })
@@ -126,5 +134,18 @@
     );  
         $("#getFolderResult").html(html)
 }  
+    function stop(){
+        if(clientSessionId==""){
+            window.alert("请先点播")
+        }else{
+            $.ajax({
+                url:stopUrl+"?clientSessionId="+clientSessionId,
+                type:'GET',
+                success:function(res){
+                    console.log(res)
+                }
+            })
+        }   
+    }
 </script>
 </html>

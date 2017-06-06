@@ -1,6 +1,6 @@
 #author:Joshua
-#date:2017/06/01
-#version:1.0.0
+#date:2017/06/06
+#version:1.1.0
 
 import logging; logging.basicConfig(level=logging.INFO)
 from django.http import HttpResponse
@@ -102,6 +102,13 @@ def getFolder(request):
 		result=f.read().decode("utf-8")
 		return HttpResponse(result,content_type="application/xml")
 
+def stop(request):
+	clientSessionId = request.GET.get('clientSessionId')
+	requestUrl="http://192.168.1.202:8185/TearDown"
+	xml='<TearDown clientSessionId="'+clientSessionId+'"/>'
+	with urllib.request.urlopen(requestUrl,data=xml.encode("utf-8")) as f:
+		result=f.read().decode("utf-8")
+		return HttpResponse(result,content_type="application/xml")
 
 def play(request):
 	client=''
@@ -110,6 +117,7 @@ def play(request):
 	clientSessionId=''
 	playUrl=''
 	serviceId=''
+	res=''
 	xml='''<?xml version="1.0" encoding="UTF-8"?><GetConfig/>'''
 	reg="http://gw.vodserver.local/GetConfig"
 	with urllib.request.urlopen(reg,data=xml.encode("utf-8")) as f:
@@ -137,4 +145,6 @@ def play(request):
 	#发送play
 	sendPlay(clientSessionId)	
 	logging.info("sendPlay")
-	return HttpResponse(playUrl)
+	res={"playUrl":playUrl,"clientSessionId":clientSessionId}
+	logging.info(res)
+	return HttpResponse(json.dumps(res),content_type='application/json')

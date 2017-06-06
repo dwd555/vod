@@ -21,5 +21,6 @@ urlpatterns = [
     url(r'^$', view.index),
     url(r'^GetConfig$',view.getConfig),
     url(r'^play$', view.play),
-    url(r'^getFolder$',view.getFolder)
+    url(r'^getFolder$',view.getFolder),
+    url(r'^stop/$',view.stop)
 ]
