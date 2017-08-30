@@ -8,6 +8,7 @@ from django.shortcuts import render
 import urllib.request
 from xml.parsers.expat import ParserCreate
 import json
+import requests
 
 class DefaultSaxHandler(object):
 	def __init__(self):
@@ -49,26 +50,35 @@ def selectionStart(client,account,titleAssetId,serviceId):
 		return json.loads(handler.data)["purchaseToken"]
 
 def requestPlay(purchaseToken):
-	requestUrl="http://192.168.1.202:8185/RequestPlay"
+	headers={'Content-Type': 'text/xml','Connection': 'Keep-Alive'}
+	requestUrl="http://gw.vodserver.local/RequestPlay"
 	xml='<?xml version="1.0" encoding="UTF-8" ?><RequestPlay purchaseToken="'+purchaseToken+'"/>'
-	with urllib.request.urlopen(requestUrl,data=xml.encode("utf-8")) as f:
-		result=f.read().decode("utf-8")
-		handler = DefaultSaxHandler()
-		parser = ParserCreate()
-		parser.StartElementHandler = handler.start_element
-		parser.Parse(result)
-		logging.info('handler.data='+handler.data)
-		# return json.loads(handler.data)["clientSessionId"]
-		return handler.data
+	r=requests.post("http://gw.vodserver.local/RequestPlay",headers=headers,data=xml.encode("utf-8"),allow_redirects=False)
+	if r.status_code==302:
+		url=r.headers["Location"]
+		# headers={'Connection': 'keep-alive','Content-Type':'text/xml'}
+		# req=request.Request(requestUrl,headers=headers)
+		with urllib.request.urlopen(url,data=xml.encode("utf-8")) as f:
+			result=f.read().decode("utf-8")
+			handler = DefaultSaxHandler()
+			parser = ParserCreate()
+			parser.StartElementHandler = handler.start_element
+			parser.Parse(result)
+			logging.info('handler.data='+handler.data)
+			# return json.loads(handler.data)["clientSessionId"]
+			return handler.data
 
 def sendPlay(clientSessionId):
-	requestUrl="http://192.168.1.202:8185/Play"
+	headers={'Content-Type': 'text/xml','Connection': 'Keep-Alive'}
 	xml='<?xml version="1.0" encoding="UTF-8" ?><Play clientSessionId="'+clientSessionId+'" range="0.0-" scale="1.0"/>'
 	logging.info("xml="+xml)
-	with urllib.request.urlopen(requestUrl,data=xml.encode("utf-8")) as f:
-		result=f.read().decode("utf-8")
-		logging.info(result)
-	return 'ok'
+	r=requests.post("http://gw.vodserver.local/Play",headers=headers,data=xml.encode("utf-8"),allow_redirects=False)
+	if r.status_code==302:
+		url=r.headers["Location"]
+		with urllib.request.urlopen(url,data=xml.encode("utf-8")) as f:
+			result=f.read().decode("utf-8")
+			logging.info(result)
+		return 'ok'
 
 def getDanShen(client,account,titleAsstId):
 	requestUrl="http://ns.gcable.cn/u1/GetItemData?client="+client+"&account="+account+"&titleAssetId="+titleAsstId
@@ -129,9 +139,9 @@ def play(request):
 		logging.info("alldata"+handler.data)
 		client=json.loads(handler.data)["client"]
 		account=json.loads(handler.data)["account"]
-	serviceId=json.loads(getDanShen(client,account,"GDZX8020151009000591"))["serviceId"]
+	serviceId=json.loads(getDanShen(client,account,"GDZX9920170821000378"))["serviceId"]
 	logging.info("serviceId"+serviceId)
-	purchaseToken=selectionStart(client, account,"GDZX8020151009000591",serviceId)
+	purchaseToken=selectionStart(client, account,"GDZX9920170821000378",serviceId)
 	logging.info("client="+client)
 	logging.info("account="+account)
 	logging.info("purchaseToken="+purchaseToken)
